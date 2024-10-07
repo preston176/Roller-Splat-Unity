@@ -6,7 +6,6 @@ public class BallController : MonoBehaviour
 {
     public Rigidbody rb;
     public float speed = 15;
-
     public int minSwipeRecognition = 500;
 
     private bool isTraveling;
@@ -17,8 +16,10 @@ public class BallController : MonoBehaviour
     private Vector2 currentSwipe;
 
     private Vector3 nextCollisionPosition;
-
     private Color solveColor;
+
+    // Particle effect to instantiate on collision
+    public GameObject collisionParticleEffect;
 
     private void Start()
     {
@@ -28,13 +29,13 @@ public class BallController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        // Set the balls speed when it should travel
+        // Set the ball's speed when it should travel
         if (isTraveling) {
             rb.velocity = travelDirection * speed;
         }
 
         // Paint the ground
-        Collider[] hitColliders = Physics.OverlapSphere(transform.position - (Vector3.up/2), .05f);
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position - (Vector3.up / 2), .05f);
         int i = 0;
         while (i < hitColliders.Length)
         {
@@ -70,20 +71,19 @@ public class BallController : MonoBehaviour
 
             if (swipePosLastFrame != Vector2.zero)
             {
-
                 // Calculate the swipe direction
                 currentSwipe = swipePosCurrentFrame - swipePosLastFrame;
 
-                if (currentSwipe.sqrMagnitude < minSwipeRecognition) // Minium amount of swipe recognition
+                if (currentSwipe.sqrMagnitude < minSwipeRecognition) // Minimum amount of swipe recognition
                     return;
 
-                currentSwipe.Normalize(); // Normalize it to only get the direction not the distance (would fake the balls speed)
+                currentSwipe.Normalize(); // Normalize it to only get the direction not the distance (would fake the ball's speed)
 
                 // Up/Down swipe
                 if (currentSwipe.x > -0.5f && currentSwipe.x < 0.5f)
                 {
-                    SetDestination(currentSwipe.y > 0 ? Vector3.forward : Vector3.back); 
-                }   
+                    SetDestination(currentSwipe.y > 0 ? Vector3.forward : Vector3.back);
+                }
 
                 // Left/Right swipe
                 if (currentSwipe.y > -0.5f && currentSwipe.y < 0.5f)
@@ -91,7 +91,6 @@ public class BallController : MonoBehaviour
                     SetDestination(currentSwipe.x > 0 ? Vector3.right : Vector3.left);
                 }
             }
-
 
             swipePosLastFrame = swipePosCurrentFrame;
         }
@@ -115,5 +114,18 @@ public class BallController : MonoBehaviour
         }
 
         isTraveling = true;
+    }
+
+    // Method called on collision
+    private void OnCollisionEnter(Collision collision)
+    {
+        // Print the name of the object we collided with
+        Debug.Log("Ball collided with: " + collision.gameObject.name);
+
+        // Instantiate the particle effect at the collision point
+        if (collisionParticleEffect != null)
+        {
+            Instantiate(collisionParticleEffect, transform.position, Quaternion.identity);
+        }
     }
 }
